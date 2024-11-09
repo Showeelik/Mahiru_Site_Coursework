@@ -59,6 +59,8 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 INSTALLED_APPS = [
     # "accounts",
+    "main",
+    "mailing",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
