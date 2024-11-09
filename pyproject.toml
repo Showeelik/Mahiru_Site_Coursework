@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "mahiru_site_coursework"
-version = "0.1.5"
+version = "0.1.6"
 description = "Сайт для рассылок на почту"
 authors = ["Showeelik <email>"]
 readme = "README.md"
