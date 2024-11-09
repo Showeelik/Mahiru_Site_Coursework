@@ -7,7 +7,7 @@ class Mailing(models.Model):
         ('started', 'Запущена'),
         ('finished', 'Завершена'),
     ])
-    message = models.ForeignKey('messages.Message')
+    message = models.ForeignKey('messages.Message', on_delete=models.CASCADE)
     recipients = models.ManyToManyField('accounts.User')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
@@ -22,7 +22,7 @@ class Mailing(models.Model):
         
         
 class MailingAttempt(models.Model):
-    mailing = models.ForeignKey(Mailing)
+    mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(choices=[
         ("success", "Успешно"),

@@ -4,8 +4,8 @@ from django.views.generic import ListView
 from django.http import HttpResponse
 import random
 
-# from mailing.services import MailingService
-# from mailing.models import Mailing
+from mailing.services import MailingService
+from mailing.models import Mailing
 from django.core.cache import cache
 
 # Create your views here.
@@ -40,10 +40,10 @@ class HomeView(ListView):
             list[Mailing]:
         """
         seed = self.request.session["random_seed"]
-        Mailings = cache.get(f"Mailings_{seed}")
+        mailings = cache.get(f"Mailings_{seed}")
 
-        if Mailings is None:
-            Mailings = MailingService.get_published_Mailings()
-            cache.set(f"Mailings_{seed}", Mailings, 60 * 15)
+        if mailings is None:
+            mailings = Mailing.objects.all()
+            cache.set(f"Mailings_{seed}", mailings, 60 * 15)
 
-        return Mailings
+        return mailings
