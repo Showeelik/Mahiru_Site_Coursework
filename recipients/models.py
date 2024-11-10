@@ -1,14 +1,13 @@
 from django.db import models
 
-# Create your models here.
 
-class Recipient(models.Model):
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField()
-    comments = models.TextField()
+class Subscriber(models.Model):
+    email = models.EmailField(unique=True, verbose_name="Электронная почта")
+    full_name = models.CharField(max_length=255, verbose_name="Ф.И.О.")
+    comment = models.TextField(blank=True, verbose_name="Комментарий")
 
     def __str__(self):
-        return self.full_name
+        return self.email
 
     class Meta:
         verbose_name = 'Получатель'

@@ -1,49 +1,20 @@
-from typing import Any
-from django.db.models.query import QuerySet
-from django.views.generic import ListView
+from django.views.generic import TemplateView
 from django.http import HttpResponse
 import random
 
-from mailing.services import MailingService
 from mailing.models import Mailing
+from recipients.models import Subscriber
 from django.core.cache import cache
 
 # Create your views here.
 
-class HomeView(ListView):
-    model = Mailing
-    template_name = "main/home.html"
-    context_object_name = "mailings"
-    paginate_by = 4  # Показывать 4 продуктов на странице
+class HomePageView(TemplateView):
+    template_name = 'main/home.html'
 
-    def get(self, request, *args, **kwargs) -> HttpResponse:
-        """
-        Возвращает URL для редиректа.
 
-        Args:
-            request (HttpRequest):
-
-        Returns:
-            HttpResponse:
-        """
-        # Получаем или генерируем seed в сессии
-        if "random_seed" not in self.request.session:
-            self.request.session["random_seed"] = random.randint(1, 1000000)
-
-        return super().get(request, *args, **kwargs)
-
-    def get_queryset(self) -> list[Mailing]:
-        """
-        Возвращает список продуктов.
-
-        Returns:
-            list[Mailing]:
-        """
-        seed = self.request.session["random_seed"]
-        mailings = cache.get(f"Mailings_{seed}")
-
-        if mailings is None:
-            mailings = Mailing.objects.all()
-            cache.set(f"Mailings_{seed}", mailings, 60 * 15)
-
-        return mailings
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_mailings'] = Mailing.objects.count()
+        context['active_mailings'] = Mailing.objects.filter(status='started').count()
+        context['unique_recipients'] = Subscriber.objects.count()
+        return context

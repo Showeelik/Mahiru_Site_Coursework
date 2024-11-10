@@ -61,6 +61,8 @@ INSTALLED_APPS = [
     # "accounts",
     "main",
     "mailing",
+    "recipients",
+    "messages",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
