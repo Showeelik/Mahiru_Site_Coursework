@@ -35,13 +35,13 @@ ALLOWED_HOSTS = []
 
 # Custom user model
 
-# AUTH_USER_MODEL = "accounts.User"
+AUTH_USER_MODEL = "accounts.User"
 
-# LOGIN_REDIRECT_URL = "home"
+LOGIN_REDIRECT_URL = "home"
 
-# LOGOUT_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "home"
 
-# LOGIN_URL = "login"
+LOGIN_URL = "login"
 
 
 # email settings
@@ -58,11 +58,11 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Application definition
 
 INSTALLED_APPS = [
-    # "accounts",
+    "accounts",
     "main",
     "mailing",
     "recipients",
-    "messages",
+    "messages_mailing",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",

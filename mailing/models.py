@@ -13,7 +13,7 @@ class Mailing(models.Model):
     start_datetime = models.DateTimeField(auto_now_add=True, null=False, blank=True, verbose_name="Дата и время запуска")
     end_datetime = models.DateTimeField(null=False, blank=True, verbose_name="Дата и время окончания")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='created', verbose_name="Статус")
-    message = models.ForeignKey("messages.Message", on_delete=models.CASCADE, related_name="mailings", verbose_name="Сообщение")
+    message = models.ForeignKey("messages_mailing.Message", on_delete=models.CASCADE, related_name="mailings", verbose_name="Сообщение")
     recipients = models.ManyToManyField("recipients.Subscriber", related_name="mailings", verbose_name="Получатели")
     owner = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="mailings", verbose_name="Владелец")
 
