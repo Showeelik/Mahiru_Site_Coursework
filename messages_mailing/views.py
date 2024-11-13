@@ -11,12 +11,12 @@ from .forms import MessageForm
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
     template_name = 'messages/list.html'
-    context_object_name = 'messages'
+    context_object_name = 'messagess'
 
     def get_queryset(self):
         if self.request.user.has_perm('messages_mailing.view_all_messages'):
             return Message.objects.all()
-        return Message.objects.all()
+        return Message.objects.filter(mailing__owner=self.request.user)
 
 class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message

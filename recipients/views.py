@@ -14,7 +14,7 @@ class RecipientListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         if self.request.user.has_perm('recipients.view_all_recipients'):
             return Recipient.objects.all()
-        return Recipient.objects.all()
+        return Recipient.objects.filter(mailings__owner=self.request.user)
 
 class RecipientDetailView(LoginRequiredMixin, DetailView):
     model = Recipient
@@ -24,7 +24,7 @@ class RecipientDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         if self.request.user.has_perm('recipients.view_all_recipients'):
             return Recipient.objects.all()
-        return Recipient.objects.all()
+        return Recipient.objects.filter(mailings__owner=self.request.user)
 
 class RecipientCreateView(LoginRequiredMixin, CreateView):
     form_class = RecipientForm
