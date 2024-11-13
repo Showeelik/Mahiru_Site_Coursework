@@ -1,25 +1,53 @@
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
-from .models import Subscriber
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib import messages
 
-class SubscriberListView(ListView):
-    model = Subscriber
-    template_name = 'recipients/subscriber_list.html'
+from .models import Recipient
+from .forms import RecipientForm
 
-class SubscriberCreateView(CreateView):
-    model = Subscriber
-    fields = ['email', 'full_name', 'comment']
-    template_name = 'recipients/subscriber_form.html'
-    success_url = reverse_lazy('recipients:list')
+class RecipientListView(LoginRequiredMixin, ListView):
+    model = Recipient
+    template_name = 'recipients/list.html'
+    context_object_name = 'recipients'
+
+    def get_queryset(self):
+        if self.request.user.has_perm('recipients.view_all_recipients'):
+            return Recipient.objects.all()
+        return Recipient.objects.all()
+
+class RecipientDetailView(LoginRequiredMixin, DetailView):
+    model = Recipient
+    template_name = 'recipients/detail.html'
+    context_object_name = 'recipient'
+
+    def get_queryset(self):
+        if self.request.user.has_perm('recipients.view_all_recipients'):
+            return Recipient.objects.all()
+        return Recipient.objects.all()
+
+class RecipientCreateView(LoginRequiredMixin, CreateView):
+    form_class = RecipientForm
+    template_name = 'recipients/form.html'
     
-class SubscriberUpdateView(UpdateView):
-    model = Subscriber
-    fields = ['email', 'full_name', 'comment']
-    template_name = 'recipients/subscriber_form.html'
-    success_url = reverse_lazy('recipients:list')
+    success_url = reverse_lazy('recipients')
     
-class SubscriberDeleteView(DeleteView):
-    model = Subscriber
-    template_name = 'recipients/subscriber_delete.html'
-    success_url = reverse_lazy('recipients:list')
+    def form_valid(self, form):
+        return super().form_valid(form)
+class RecipientUpdateView(LoginRequiredMixin, UpdateView):
+    model = Recipient
+    form_class = RecipientForm
+    template_name = 'recipients/form.html'
+    success_url = reverse_lazy('recipients')
+
+    def form_valid(self, form):
+        return super().form_valid(form)
+
+
+class RecipientDeleteView(LoginRequiredMixin, DeleteView):
+    model = Recipient
+    success_url = reverse_lazy('recipients')
     
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Получатель успешно удалён!")
+        return super().delete(request, *args, **kwargs)

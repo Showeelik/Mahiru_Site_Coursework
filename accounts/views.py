@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetDoneView
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 
@@ -33,15 +34,16 @@ class LoginView(LoginView):
 class ProfileView(DetailView):
     model = User
     template_name = "accounts/profile.html"
+    context_object_name = "profile_user"  # Используем это имя в шаблоне
 
     def get_object(self):
-        return self.request.user
+        # Получаем параметр username из URL и находим пользователя
+        username = self.kwargs.get("username")
+        return get_object_or_404(User, username=username)
 
     def get_context_data(self, **kwargs):
-
         context = super().get_context_data(**kwargs)
-        # context["products"] = Product.objects.filter(owner=self.request.user)
-        # context["blogs"] = Blog.objects.filter(owner=self.request.user)
+        # Добавляем другие данные в контекст, если нужно
         return context
 
 

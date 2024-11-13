@@ -10,8 +10,8 @@ from .models import User
 
 class RegisterForm(UserCreationForm):
     # Загрузка черного списка один раз при инициализации класса
-    # with open("black_list_words.json", "r", encoding="utf-8") as f:
-    #     BLACKLIST_WORDS = set(json.load(f))  # Преобразуем список в множество для быстрого поиска
+    with open("black_list_words.json", "r", encoding="utf-8") as f:
+        BLACKLIST_WORDS = set(json.load(f))  # Преобразуем список в множество для быстрого поиска
 
     phone_number = forms.CharField(max_length=20, required=False, help_text="Необязательное поле")
     country = forms.CharField(max_length=100, required=False, help_text="Необязательное поле")
@@ -184,8 +184,8 @@ class ProfileForm(forms.ModelForm):
     ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"]
 
     # Загружаем запрещенные слова один раз при загрузке формы
-    # with open("black_list_words.json", "r", encoding="utf-8") as f:
-    #     BLACKLIST_WORDS = set(json.load(f))  # Используем множество для быстрого поиска
+    with open("black_list_words.json", "r", encoding="utf-8") as f:
+        BLACKLIST_WORDS = set(json.load(f))  # Используем множество для быстрого поиска
 
     class Meta:
         model = User

@@ -14,9 +14,8 @@
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Войти</button>
         <a href="{% url 'signup' %}" class="btn btn-secondary">Регистрация</a>
-        <a href="{% url 'catalogs' %}" class="btn btn-secondary">Назад</a>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Назад</a>
     </form>
 </div>
 {% include 'includes/toast.html'%}
-{% include 'includes/footer.html' %}
 {% endblock %}

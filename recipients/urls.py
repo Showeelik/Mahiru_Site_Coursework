@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import SubscriberListView, SubscriberCreateView
+from .views import RecipientCreateView, RecipientListView, RecipientDeleteView, RecipientUpdateView, RecipientDetailView
 
 urlpatterns = [
-    path('', SubscriberListView.as_view(), name='subscriber_list'),
-    path('add', SubscriberCreateView.as_view(), name='subscriber_add'),
-    path('<int:pk>/edit', SubscriberCreateView.as_view(), name='subscriber_edit'),
-    path('<int:pk>/delete', SubscriberCreateView.as_view(), name='subscriber_delete'),
+    path('', RecipientListView.as_view(), name='recipients'),
+    path('new', RecipientCreateView.as_view(), name='recipient_new'),
+    path('<int:pk>/edit', RecipientUpdateView.as_view(), name='recipient_edit'),
+    path('<int:pk>/delete', RecipientDeleteView.as_view(), name='recipient_delete'),
 ]
