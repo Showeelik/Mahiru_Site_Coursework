@@ -10,12 +10,12 @@
     <div class="recommendations my-5">
         {% if user.is_authenticated %}
         <h2 class="text-center mb-4">Добро пожаловать, {{ user.username }}!</h2>
-        <div class="card w-50">
+        <div class="card w-50 text-center mx-auto">
             <h2 class="card-header">Рассылки</h2>
             <div class="card-body">
-                <h3 class="card-text"><a href="{% url 'mailings_list' %}">Всего рассылок: {{ mailings|length }}</a></h3>
-                <h3 class="card-text">Активных рассылок: {{ mailings.is_active|length }}</h3>
-                <h3 class="card-text"><a href="{% url 'recipients' %}">Уникальных получателей: {{ recipients|length }}</a></h3>
+                <h3 class="card-text"><a href="{% url 'mailings' %}">Всего рассылок: {{ total_mailings }}</a></h3>
+                <h3 class="card-text">Активных рассылок: {{ active_mailings }}</h3>
+                <h3 class="card-text"><a href="{% url 'recipients' %}">Уникальных получателей: {{ unique_recipients }}</a></h3>
             </div>
         </div>
         {% else %}

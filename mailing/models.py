@@ -6,7 +6,7 @@ class Mailing(models.Model):
         ('STARTED', 'Запущена'),
         ('FINISHED', 'Завершена'),
     )
-    start_time = models.DateTimeField(verbose_name='Дата и время запуска', auto_now_add=True)
+    start_time = models.DateTimeField(verbose_name='Дата и время запуска')
     end_time = models.DateTimeField(verbose_name='Дата и время окончания')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='CREATED', verbose_name='Статус')
     message = models.ForeignKey('messages_mailing.Message', on_delete=models.CASCADE, verbose_name='Сообщение')

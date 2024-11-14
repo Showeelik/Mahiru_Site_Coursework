@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "mahiru_site_coursework"
-version = "0.5.2"
+version = "0.6.0"
 description = "Сайт для рассылок на почту"
 authors = ["Showeelik <email>"]
 readme = "README.md"
@@ -14,8 +14,6 @@ python-dotenv = "^1.0.1"
 ipython = "^8.29.0"
 django-redis-cache = "^3.0.1"
 pillow = "^11.0.0"
-wheel = "^0.45.0"
-setuptools = "^75.4.0"
 psycopg2 = "^2.9.10"
 
 [tool.poetry.group.dev.dependencies]

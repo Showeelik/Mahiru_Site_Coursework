@@ -24,7 +24,7 @@ class HomePageView(TemplateView):
             context['total_mailings'] = user_mailings.count()
             
             # Количество активных рассылок пользователя
-            context['active_mailings'] = user_mailings.filter(status='started').count()
+            context['active_mailings'] = user_mailings.filter(status='STARTED').count()
             
             # Количество уникальных получателей для всех рассылок пользователя
             # Предполагается, что recipients — это ManyToMany поле в модели Mailing

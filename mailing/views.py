@@ -1,8 +1,14 @@
+from django.shortcuts import redirect
+from django.views import View
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib import messages
+from django.core.mail import send_mail
 
 from .models import Mailing, MailingAttempt
+from .forms import MailingForm
 
 
 class MailingListView(ListView):
@@ -11,22 +17,17 @@ class MailingListView(ListView):
     context_object_name = 'mailings'
 
     def get_queryset(self):
-        return Mailing.objects.all()
+        return Mailing.objects.filter(owner=self.request.user)
     
-
-class MailingDetailView(LoginRequiredMixin, DetailView):
-    model = Mailing
-    template_name = 'mailing/detail.html'
-
 class MailingCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = Mailing
-    fields = ['message', 'recipients', 'start_time', 'end_time']
-    template_name = 'mailing/create.html'
-    success_url = reverse_lazy('mailing:list')
+    
+    form_class = MailingForm
+    template_name = 'mailing/form.html'
+    success_url = reverse_lazy('mailings')
     permission_required = 'mailing.add_mailing'
 
     def has_permission(self):
-        return super().has_permission() or self.request.user.is_superuser
+        return super().has_permission() or self.request.user
     
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -35,9 +36,9 @@ class MailingCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
 
 class MailingUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Mailing
-    fields = ['message', 'recipients', 'start_time', 'end_time']
-    template_name = 'mailing/update.html'
-    success_url = reverse_lazy('mailing:list')
+    form_class = MailingForm
+    template_name = 'mailing/form.html'
+    success_url = reverse_lazy('mailings')
     permission_required = 'mailing.change_mailing'
     
     def has_permission(self):
@@ -46,16 +47,76 @@ class MailingUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView)
     def get_queryset(self):
         return Mailing.objects.filter(owner=self.request.user)
     
+    def form_valid(self, form):
+        form.instance.status = 'CREATED'
+        return super().form_valid(form)
+    
 class MailingDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Mailing
-    template_name = 'mailing/delete.html'
-    success_url = reverse_lazy('mailing:list')
+    success_url = reverse_lazy('mailings')
     permission_required = 'mailing.delete_mailing'
     
     def has_permission(self):
         return super().has_permission() or self.request.user.is_superuser
 
-    def get_queryset(self):
-        return Mailing.objects.filter(owner=self.request.user)
-    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "Рассылка успешно удалена!")
+        return super().delete(request, *args, **kwargs)
 
+class MailingReportView(LoginRequiredMixin, DetailView):
+    model = Mailing
+    template_name = 'mailing/report.html'
+    context_object_name = 'mailing'
+
+    def get_queryset(self):
+        if self.request.user.has_perm('mailings.view_all_mailings'):
+            return Mailing.objects.all()
+        return Mailing.objects.filter(owner=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        mailing = self.get_object()
+        attempts = MailingAttempt.objects.filter(mailing=mailing)
+        context['attempts'] = attempts
+        context['success_count'] = attempts.filter(status='SUCCESS').count()
+        context['failure_count'] = attempts.filter(status='FAILURE').count()
+        return context
+    
+class SendMailingView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+        # Получаем объект рассылки
+        mailing = Mailing.objects.get(pk=pk, owner=request.user)
+        message = mailing.message
+        recipients = mailing.recipients.all()
+        response = None
+
+        # Отправляем сообщения каждому получателю
+        for recipient in recipients:
+            try:
+                send_mail(
+                    message.subject,
+                    message.body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [recipient.email],
+                )
+                MailingAttempt.objects.create(
+                    status='SUCCESS',
+                    response=f'Успешно отправлено на {recipient.email}',
+                    mailing=mailing
+                )                
+            except Exception as e:
+                response = f"Письмо не отправлено на {recipient.email}: {e}"
+                MailingAttempt.objects.create(
+                    status='FAILURE',
+                    response=response,
+                    mailing=mailing
+                )
+        # Отправляем сообщение об успехе и перенаправляем
+        if MailingAttempt.objects.filter(mailing=mailing).order_by('-attempt_time').first().status == 'SUCCESS':
+            messages.success(request, f"Письмо успешно отправлено на {recipient.email}")
+        else:
+            messages.warning(request, response)
+        mailing.status = 'FINISHED'
+        mailing.save()
+        return redirect('mailings')
