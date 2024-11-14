@@ -331,3 +331,31 @@ class ProfileForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm, PasswordChangeForm
+
+class CustomPasswordResetForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        # Just check if the email exists in the system (without "unique" validation)
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Пользователь с таким email не существует")
+        return email
+
+class CustomSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
+            
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = 'form-control'
