@@ -17,17 +17,15 @@ class MailingListView(ListView):
     context_object_name = 'mailings'
 
     def get_queryset(self):
+        if self.request.user.has_perm('mailings.view_all_mailings'):
+            return Mailing.objects.all()
         return Mailing.objects.filter(owner=self.request.user)
     
-class MailingCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class MailingCreateView(LoginRequiredMixin, CreateView):
     
     form_class = MailingForm
     template_name = 'mailing/form.html'
     success_url = reverse_lazy('mailings')
-    permission_required = 'mailing.add_mailing'
-
-    def has_permission(self):
-        return super().has_permission() or self.request.user
     
     def form_valid(self, form):
         form.instance.owner = self.request.user
@@ -42,7 +40,7 @@ class MailingUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView)
     permission_required = 'mailing.change_mailing'
     
     def has_permission(self):
-        return super().has_permission() or self.request.user.is_superuser
+        return super().has_permission() or self.request.user == self.get_object().owner
 
     def get_queryset(self):
         return Mailing.objects.filter(owner=self.request.user)
@@ -57,7 +55,7 @@ class MailingDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     permission_required = 'mailing.delete_mailing'
     
     def has_permission(self):
-        return super().has_permission() or self.request.user.is_superuser
+        return super().has_permission() or self.request.user == self.get_object().owner
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Рассылка успешно удалена!")
@@ -118,5 +116,19 @@ class SendMailingView(LoginRequiredMixin, View):
         else:
             messages.warning(request, response)
         mailing.status = 'FINISHED'
+        mailing.save()
+        return redirect('mailings')
+    
+class MailingStartView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        mailing = Mailing.objects.get(pk=pk)
+        mailing.status = 'STARTED'
+        mailing.save()
+        return redirect('mailings')
+    
+class MailingStopView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        mailing = Mailing.objects.get(pk=pk)
+        mailing.status = 'CREATED'
         mailing.save()
         return redirect('mailings')

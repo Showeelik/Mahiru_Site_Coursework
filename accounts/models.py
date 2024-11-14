@@ -21,3 +21,4 @@ class User(AbstractUser):
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
         ordering = ["username"]
+        permissions = [("view_all_users", "Can view all users"), ("can_block_user", "Can block user")]

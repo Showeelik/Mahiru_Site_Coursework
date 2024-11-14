@@ -16,15 +16,6 @@ class RecipientListView(LoginRequiredMixin, ListView):
             return Recipient.objects.all()
         return Recipient.objects.filter(mailings__owner=self.request.user)
 
-class RecipientDetailView(LoginRequiredMixin, DetailView):
-    model = Recipient
-    template_name = 'recipients/detail.html'
-    context_object_name = 'recipient'
-
-    def get_queryset(self):
-        if self.request.user.has_perm('recipients.view_all_recipients'):
-            return Recipient.objects.all()
-        return Recipient.objects.filter(mailings__owner=self.request.user)
 
 class RecipientCreateView(LoginRequiredMixin, CreateView):
     form_class = RecipientForm
@@ -34,6 +25,8 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         return super().form_valid(form)
+    
+    
 class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipient
     form_class = RecipientForm

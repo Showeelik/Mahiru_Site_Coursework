@@ -1,16 +1,36 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetDoneView
+from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.views import View
+from django.db.models import Count, Prefetch
+
+from django.views.generic import CreateView, DeleteView, DetailView, UpdateView, ListView
 
 
 
 from .forms import LoginForm, ProfileForm, RegisterForm
 from .models import User
+from mailing.models import Mailing
 
+
+class UserListView(PermissionRequiredMixin, ListView):
+    model = User
+    template_name = "accounts/user_list.html"
+    permission_required = "view_all_users"
+    context_object_name = "users"
+
+    def get_queryset(self):
+        # Annotate with mailing count and prefetch related mailings
+        return User.objects.annotate(
+            mailing_count=Count('mailings')
+        ).prefetch_related(
+            Prefetch('mailings', queryset=Mailing.objects.all())
+        )
 
 class RegisterView(CreateView):
     form_class = RegisterForm
@@ -29,23 +49,16 @@ class LoginView(LoginView):
     authentication_form = LoginForm
     template_name = "accounts/login.html"
     redirect_authenticated_user = True
+    success_url = reverse_lazy("home")
 
 
 class ProfileView(DetailView):
     model = User
     template_name = "accounts/profile.html"
-    context_object_name = "profile_user"  # Используем это имя в шаблоне
 
     def get_object(self):
-        # Получаем параметр username из URL и находим пользователя
-        username = self.kwargs.get("username")
-        return get_object_or_404(User, username=username)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Добавляем другие данные в контекст, если нужно
-        return context
-
+        return self.request.user
+    
 
 class ProfileEditView(UpdateView):
     form_class = ProfileForm
@@ -73,21 +86,27 @@ class ProfileDeleteView(DeleteView):
         messages.success(self.request, "Профиль успешно удалён!")
         return super().delete(request, *args, **kwargs)
 
-class PasswordResetView(PasswordResetView):
-    template_name = "accounts/password_reset.html"
-    success_url = reverse_lazy("password_reset_done")
-    email_template_name = "accounts/password_reset_email.html"
 
+class ProfileBlockView(PermissionRequiredMixin, View):
+    permission_required = "accounts.can_block_user"
 
-class PasswordResetDoneView(PasswordResetDoneView):
-    template_name = "accounts/password_reset_done.html"
-
+    def post(self, request: HttpRequest, *args: str, **kwargs) -> HttpResponse:
+        user = get_object_or_404(User, username=self.kwargs.get("username"))
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+            messages.success(self.request, "Пользователь успешно разблокирован!")
+        else:
+            user.is_active = False
+            user.save()
+            messages.success(self.request, "Пользователь успешно заблокирован!")
+        return redirect("users")
 
 
 def send_welcome_email(user: User):
-    subject = "Добро пожаловать в MahiruStore!"
+    subject = "Добро пожаловать в MahiruMailing!"
     message = """
-    Спасибо, что присоединились к MahiruStore! Мы рады приветствовать вас в нашем сообществе.
+    Спасибо, что присоединились к MahiruMailing! Мы рады приветствовать вас в нашем сообществе.
 
     Вы теперь можете наслаждаться всеми преимуществами нашего магазина, включая:
     - Просмотр и покупку самых популярных товаров в различных категориях.
@@ -95,10 +114,10 @@ def send_welcome_email(user: User):
     - Получение эксклюзивных предложений и акций только для зарегистрированных пользователей.
 
     Чтобы начать, вы можете посетить наш каталог товаров по следующей ссылке:
-    https://localhost:8000/catalogs
+    https://localhost:8000/
 
     Если у вас возникнут вопросы или нужна помощь, не стесняйтесь обращаться к нашей службе поддержки:
-    - Email: support@mahirustore.com
+    - Email: support@mahirumailing.com
     - Телефон: +7(123)456-78-90
 
     С уважением,

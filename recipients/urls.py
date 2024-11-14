@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RecipientCreateView, RecipientListView, RecipientDeleteView, RecipientUpdateView, RecipientDetailView
+from .views import RecipientCreateView, RecipientListView, RecipientDeleteView, RecipientUpdateView
 
 urlpatterns = [
     path('', RecipientListView.as_view(), name='recipients'),

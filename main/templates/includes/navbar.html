@@ -9,6 +9,11 @@
                 <li class="nav-item">
                     <a class="nav-link active" href="{% url 'home' %}">Главная</a>
                 </li>
+                {% if perms.user.view_all_users %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'users' %}">Пользователи</a>
+                </li>
+                {% endif %}
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'mailings' %}">Список рассылок</a>
@@ -30,7 +35,7 @@
                             {{ user.username }}
                         </button>
                         <ul class="dropdown-menu dropdown-menu-dark">
-                            <li><a class="dropdown-item" href="{% url 'profile' user.username %}">Профиль</a></li>
+                            <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a></li>
                             <li>
                                 <form action="{% url 'logout' %}" method="post" class="d-inline">
                                     {% csrf_token %}

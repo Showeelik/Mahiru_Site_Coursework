@@ -4,6 +4,7 @@ import re
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth import authenticate, login
 
 from .models import User
 
@@ -139,13 +140,15 @@ class LoginForm(AuthenticationForm):
         """
         email = self.cleaned_data.get("username")
         password = self.cleaned_data.get("password")
+        
+        user = authenticate(request=self.request, username=email, password=password)
+        if not user:
+            raise forms.ValidationError("Неверное имя пользователя или пароль")
+        if not user.is_active:
+            raise forms.ValidationError("Пользователь заблокирован")
+        
+        login(self.request, user)
 
-        if email and password:
-            if not User.objects.filter(email=email).exists():
-                raise forms.ValidationError("Неверное имя пользователя или пароль")
-            self.user_cache = User.objects.get(email=email)
-            if not self.user_cache.check_password(password):
-                raise forms.ValidationError("Неверное имя пользователя или пароль")
         return self.cleaned_data
 
     def __init__(self, *args, **kwargs):
@@ -345,6 +348,8 @@ class CustomPasswordResetForm(PasswordResetForm):
         # Just check if the email exists in the system (without "unique" validation)
         if not User.objects.filter(email=email).exists():
             raise forms.ValidationError("Пользователь с таким email не существует")
+        if not User.objects.get(email=email).is_active:
+            raise forms.ValidationError("Пользователь заблокирован")
         return email
 
 class CustomSetPasswordForm(SetPasswordForm):

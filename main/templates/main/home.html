@@ -11,7 +11,7 @@
         {% if user.is_authenticated %}
         <h2 class="text-center mb-4">Добро пожаловать, {{ user.username }}!</h2>
         <div class="card w-50 text-center mx-auto">
-            <h2 class="card-header">Рассылки</h2>
+            <h2 class="card-header">Мои рассылки</h2>
             <div class="card-body">
                 <h3 class="card-text"><a href="{% url 'mailings' %}">Всего рассылок: {{ total_mailings }}</a></h3>
                 <h3 class="card-text">Активных рассылок: {{ active_mailings }}</h3>

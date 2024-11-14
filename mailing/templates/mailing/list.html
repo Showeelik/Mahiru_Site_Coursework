@@ -71,12 +71,28 @@
                             <a href="{% url 'mailing_report' mailing.id %}" class="btn btn-primary btn-sm">Узнать подробный отчёт</a>
                             <hr>
                             <div class="d-flex">
+                                {% if mailing.owner == request.user %}
                                 {% if mailing.status == 'STARTED' or mailing.status == 'CREATED' %}
                                 <form action="{% url 'send_mailing' mailing.id %}" method="post">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-success mx-1">Отправить</button>
                                 </form>
                                 {% endif %}
+                                {% endif %}
+                                {% if mailing.status == 'CREATED' %}
+                                {% if mailing.owner == request.user %}
+                                <form action="{% url 'mailing_start' mailing.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary mx-1">Запустить</button>
+                                </form>
+                                {% endif %}
+                                {% elif mailing.status == 'STARTED' %}
+                                <form action="{% url 'mailing_stop' mailing.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger mx-1">Остановить</button>
+                                </form>
+                                {% endif %}
+                                {% if mailing.owner == request.user %}
                                 <form action="{% url 'mailing_delete' mailing.id %}" method="post" class="d-inline">
                                     {% csrf_token %}
                                     <div class="btn-group">
@@ -84,6 +100,8 @@
                                         <button type="submit" class="btn btn-danger">Удалить</button>
                                     </div>
                                 </form>
+                                {% endif %}
+
                             </div>
                         </div>
                     </div>

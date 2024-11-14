@@ -11,7 +11,7 @@ class Mailing(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='CREATED', verbose_name='Статус')
     message = models.ForeignKey('messages_mailing.Message', on_delete=models.CASCADE, verbose_name='Сообщение')
     recipients = models.ManyToManyField('recipients.Recipient', related_name='mailings', verbose_name='Получатели')
-    owner = models.ForeignKey("accounts.User", on_delete=models.CASCADE, verbose_name='Владелец')
+    owner = models.ForeignKey("accounts.User", related_name='mailings', on_delete=models.CASCADE, verbose_name='Владелец')
 
     def __str__(self):
         return f'Mailing #{self.id} - {self.status}'

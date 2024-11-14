@@ -2,16 +2,18 @@ from django.urls import path
 
 from django.contrib.auth.views import LogoutView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView, PasswordChangeView, PasswordChangeDoneView
 
-from .views import LoginView, ProfileDeleteView, ProfileEditView, ProfileView, RegisterView
+from .views import LoginView, ProfileDeleteView, ProfileEditView, ProfileView, RegisterView, UserListView, ProfileBlockView
 from .forms import CustomPasswordResetForm, CustomSetPasswordForm, CustomPasswordChangeForm
 
 urlpatterns = [
+    path("", view=UserListView.as_view(), name="users"),
     path("login", view=LoginView.as_view(), name="login"),
     path("logout", view=LogoutView.as_view(next_page="home"), name="logout"),
     path("signup", view=RegisterView.as_view(), name="signup"),
+    path("profile", view=ProfileView.as_view(), name="profile"),
     path("profile/edit", view=ProfileEditView.as_view(), name="profile-edit"),
     path("profile/delete", view=ProfileDeleteView.as_view(), name="profile-delete"),
-    path("profile/<str:username>", view=ProfileView.as_view(), name="profile"),
+    path("profile/<str:username>/block", view=ProfileBlockView.as_view(), name="profile-block"),
     
     path("password-reset", view=PasswordResetView.as_view(template_name="accounts/password_reset.html", form_class=CustomPasswordResetForm), name="password_reset"),
     path("password-reset/done", view=PasswordResetDoneView.as_view(template_name="accounts/password_reset_done.html"), name="password_reset_done"),
