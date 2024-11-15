@@ -2,6 +2,8 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView, D
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.core.cache import cache
+
 
 from .models import Recipient
 from .forms import RecipientForm
@@ -13,8 +15,16 @@ class RecipientListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         if self.request.user.has_perm('recipients.view_all_recipients'):
-            return Recipient.objects.all()
-        return Recipient.objects.filter(mailings__owner=self.request.user)
+            recipient = cache.get('recipients_{}'.format(self.request.user.id))
+            if recipient is None:
+                recipient = Recipient.objects.all()
+                cache.set('recipients_{}'.format(self.request.user.id), recipient, 60 * 15)
+        else:
+            recipient = cache.get('recipients_{}'.format(self.request.user.id))
+            if recipient is None:
+                recipient = Recipient.objects.filter(owner=self.request.user)
+                cache.set('recipients_{}'.format(self.request.user.id), recipient, 60 * 15)
+        return recipient
 
 
 class RecipientCreateView(LoginRequiredMixin, CreateView):

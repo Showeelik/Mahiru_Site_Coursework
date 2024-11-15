@@ -47,20 +47,7 @@
             </div>
         </div>
         <div class="col-md-9">
-            <h3 class="h3 mb-3 font-weight-normal">Ваши продукты</h3>
-            <div class="row justify-content-start">
-                {% for product in products %}
-                    {% include 'includes/product_card.html' with product=product %}
-                {% endfor %}
-            </div>
-            <h3 class="h3 mb-3 font-weight-normal">Ваши блоги</h3>
-            <div class="row justify-content-start">
-                {% for blog in blogs %}
-                    {% include 'includes/blog_card.html' with blog=blog %}
-                {% endfor %}
-            </div>
         </div>
-
     </div>
 </div>
 {% include 'includes/toast.html'%}

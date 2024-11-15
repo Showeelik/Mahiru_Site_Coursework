@@ -1,5 +1,7 @@
 from django.views.generic import TemplateView
 from django.http import HttpResponse
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 import random
 
 from mailing.models import Mailing
@@ -7,7 +9,7 @@ from recipients.models import Recipient
 from django.core.cache import cache
 
 # Create your views here.
-
+@method_decorator(cache_page(60 * 15), name='dispatch')
 class HomePageView(TemplateView):
     template_name = 'main/home.html'
     

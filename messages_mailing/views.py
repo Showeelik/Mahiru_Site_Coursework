@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 
 from .models import Message
 from .forms import MessageForm
@@ -15,9 +16,17 @@ class MessageListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         if self.request.user.has_perm('messages_mailing.view_all_messages'):
-            return Message.objects.all()
-        return Message.objects.filter(mailing__owner=self.request.user)
-
+            message = cache.get('messages_{}'.format(self.request.user.id))
+            if message is None:
+                message = Message.objects.all()
+                cache.set('messages_{}'.format(self.request.user.id), message, 60 * 15)
+            return message
+        else:
+            message = cache.get('messages_{}'.format(self.request.user.id))
+            if message is None:
+                message = Message.objects.filter(owner=self.request.user)
+                cache.set('messages_{}'.format(self.request.user.id), message, 60 * 15)
+            return message
 class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     form_class = MessageForm

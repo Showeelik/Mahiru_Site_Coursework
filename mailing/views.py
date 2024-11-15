@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib import messages
+from django.core.cache import cache
 from django.core.mail import send_mail
 
 from .models import Mailing, MailingAttempt
@@ -17,9 +18,19 @@ class MailingListView(ListView):
     context_object_name = 'mailings'
 
     def get_queryset(self):
-        if self.request.user.has_perm('mailings.view_all_mailings'):
-            return Mailing.objects.all()
-        return Mailing.objects.filter(owner=self.request.user)
+        # Проверяем, имеет ли пользователь права на просмотр всех рассылок
+        if self.request.user.has_perm('mailing.view_all_mailings'):
+            # Получаем рассылки из кэша
+            mailing = cache.get('mailings_{}'.format(self.request.user.id))
+            if mailing is None:
+                mailing = Mailing.objects.all()
+                cache.set('mailings_{}'.format(self.request.user.id), mailing, 60 * 15)
+        else:       
+            mailing = cache.get('mailings_{}'.format(self.request.user.id))
+            if mailing is None:
+                mailing = Mailing.objects.filter(owner=self.request.user)
+                cache.set('mailings_{}'.format(self.request.user.id), mailing, 60 * 15)
+        return mailing
     
 class MailingCreateView(LoginRequiredMixin, CreateView):
     
