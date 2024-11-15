@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.core.mail import send_mail
 from mailing.models import Mailing, MailingAttempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
 class Command(BaseCommand):
     help = 'Отправить рассылку'
@@ -21,9 +22,8 @@ class Command(BaseCommand):
                     send_mail(
                         subject=message.subject,
                         message=message.body,
-                        from_email=mailing.owner.email,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
                         recipient_list=[recipient.email],
-                        fail_silently=False,
                     )
                     MailingAttempt.objects.create(
                         response='Успешно отправлено',
