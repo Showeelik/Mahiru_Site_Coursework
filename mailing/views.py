@@ -18,19 +18,22 @@ class MailingListView(ListView):
     context_object_name = "mailings"
 
     def get_queryset(self):
-        # Проверяем, имеет ли пользователь права на просмотр всех рассылок
-        if self.request.user.has_perm("mailing.view_all_mailings"):
-            # Получаем рассылки из кэша
-            mailing = cache.get("mailings_{}".format(self.request.user.id))
-            if mailing is None:
-                mailing = Mailing.objects.all()
-                cache.set("mailings_{}".format(self.request.user.id), mailing, 60 * 15)
-        else:
-            mailing = cache.get("mailings_{}".format(self.request.user.id))
-            if mailing is None:
-                mailing = Mailing.objects.filter(owner=self.request.user)
-                cache.set("mailings_{}".format(self.request.user.id), mailing, 60 * 15)
-        return mailing
+        cache_key = f"mailing_list_{self.request.user.id}"
+
+        if self.request.user.has_perm("mailings.view_all_mailings"):
+            cache_key = "mailings_all"
+
+        mailings = cache.get(cache_key)
+
+        if mailings is None:
+            if self.request.user.has_perm("mailings.view_all_mailings"):
+                mailings = Mailing.objects.all().order_by("-id")
+            else:
+                mailings = Mailing.objects.filter(owner=self.request.user).order_by("-id")
+
+            cache.set(cache_key, mailings, 60 * 15)  # Cache for 15 minutes
+
+        return mailings
 
 
 class MailingCreateView(LoginRequiredMixin, CreateView):
@@ -41,6 +44,7 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
+        cache.delete(f"mailing_list_{self.request.user.id}")
         return super().form_valid(form)
 
 

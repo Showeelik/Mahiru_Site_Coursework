@@ -5,6 +5,7 @@ from django.db import models
 class Message(models.Model):
     subject = models.CharField(max_length=255, blank=True, verbose_name="Тема сообщения")
     body = models.TextField(verbose_name="Текст сообщения")
+    owner = models.ForeignKey("accounts.User", on_delete=models.CASCADE, verbose_name="Владелец")
 
     def __str__(self):
         return self.subject

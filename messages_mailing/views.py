@@ -16,18 +16,23 @@ class MessageListView(LoginRequiredMixin, ListView):
     context_object_name = "messagess"
 
     def get_queryset(self):
-        if self.request.user.has_perm("messages_mailing.view_all_messages"):
-            message = cache.get("messages_{}".format(self.request.user.id))
-            if message is None:
-                message = Message.objects.all()
-                cache.set("messages_{}".format(self.request.user.id), message, 60 * 15)
-            return message
-        else:
-            message = cache.get("messages_{}".format(self.request.user.id))
-            if message is None:
-                message = Message.objects.filter(owner=self.request.user)
-                cache.set("messages_{}".format(self.request.user.id), message, 60 * 15)
-            return message
+        cache_key = f"messages_{self.request.user.id}"
+
+        # Check for the correct permission
+        if self.request.user.has_perm("messages.view_all_messages"):
+            cache_key = "messages_all"
+
+        messages = cache.get(cache_key)
+
+        if messages is None:
+            if self.request.user.has_perm("messages.view_all_messages"):
+                messages = Message.objects.all().order_by("-id")
+            else:
+                messages = Message.objects.filter(owner=self.request.user).order_by("-id")
+
+            cache.set(cache_key, messages, 60 * 15)  # Cache for 15 minutes
+
+        return messages
 
 
 class MessageCreateView(LoginRequiredMixin, CreateView):
@@ -37,6 +42,8 @@ class MessageCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("messages")
 
     def form_valid(self, form):
+        form.instance.owner = self.request.user
+        cache.delete(f"messages_{self.request.user.id}")
         return super().form_valid(form)
 
 
