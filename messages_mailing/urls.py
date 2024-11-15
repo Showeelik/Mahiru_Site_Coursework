@@ -1,7 +1,6 @@
 from django.urls import path
 
-from .views import MessageListView, MessageCreateView, MessageUpdateView, MessageDeleteView
-
+from .views import MessageCreateView, MessageDeleteView, MessageListView, MessageUpdateView
 
 urlpatterns = [
     path("", view=MessageListView.as_view(), name="messages"),

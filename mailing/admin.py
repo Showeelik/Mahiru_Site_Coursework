@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from .models import Mailing, MailingAttempt
 
+
 # Register your models here.
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
@@ -9,6 +10,7 @@ class MailingAdmin(admin.ModelAdmin):
     list_filter = ("status", "message", "recipients", "start_time", "end_time")
     search_fields = ("status", "message", "recipients", "start_time", "end_time")
     ordering = ("-start_time",)
+
 
 @admin.register(MailingAttempt)
 class MailingAttemptAdmin(admin.ModelAdmin):

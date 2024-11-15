@@ -1,21 +1,19 @@
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
+from django.db.models import Count, Prefetch
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views import View
-from django.db.models import Count, Prefetch
+from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
-from django.views.generic import CreateView, DeleteView, DetailView, UpdateView, ListView
-
-
+from mailing.models import Mailing
 
 from .forms import LoginForm, ProfileForm, RegisterForm
 from .models import User
-from mailing.models import Mailing
 
 
 class UserListView(PermissionRequiredMixin, ListView):
@@ -26,11 +24,10 @@ class UserListView(PermissionRequiredMixin, ListView):
 
     def get_queryset(self):
         # Annotate with mailing count and prefetch related mailings
-        return User.objects.annotate(
-            mailing_count=Count('mailings')
-        ).prefetch_related(
-            Prefetch('mailings', queryset=Mailing.objects.all())
+        return User.objects.annotate(mailing_count=Count("mailings")).prefetch_related(
+            Prefetch("mailings", queryset=Mailing.objects.all())
         )
+
 
 class RegisterView(CreateView):
     form_class = RegisterForm
@@ -58,7 +55,7 @@ class ProfileView(DetailView):
 
     def get_object(self):
         return self.request.user
-    
+
 
 class ProfileEditView(UpdateView):
     form_class = ProfileForm

@@ -1,8 +1,7 @@
 from django.urls import path
 
-from .views import (MailingListView, MailingCreateView, MailingUpdateView, MailingDeleteView, SendMailingView, MailingReportView, MailingStartView, MailingStopView)
-
-
+from .views import (MailingCreateView, MailingDeleteView, MailingListView, MailingReportView, MailingStartView,
+                    MailingStopView, MailingUpdateView, SendMailingView)
 
 urlpatterns = [
     path("", view=MailingListView.as_view(), name="mailings"),
