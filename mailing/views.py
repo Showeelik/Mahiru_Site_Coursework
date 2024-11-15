@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.core.cache import cache
 from django.core.mail import send_mail
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -18,22 +17,9 @@ class MailingListView(ListView):
     context_object_name = "mailings"
 
     def get_queryset(self):
-        cache_key = f"mailing_list_{self.request.user.id}"
-
         if self.request.user.has_perm("mailings.view_all_mailings"):
-            cache_key = "mailings_all"
-
-        mailings = cache.get(cache_key)
-
-        if mailings is None:
-            if self.request.user.has_perm("mailings.view_all_mailings"):
-                mailings = Mailing.objects.all().order_by("-id")
-            else:
-                mailings = Mailing.objects.filter(owner=self.request.user).order_by("-id")
-
-            cache.set(cache_key, mailings, 60 * 15)  # Cache for 15 minutes
-
-        return mailings
+            return Mailing.objects.all()
+        return Mailing.objects.filter(owner=self.request.user)
 
 
 class MailingCreateView(LoginRequiredMixin, CreateView):
@@ -44,7 +30,6 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
-        cache.delete(f"mailing_list_{self.request.user.id}")
         return super().form_valid(form)
 
 
